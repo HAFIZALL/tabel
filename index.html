@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DATA MAHASISWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            text-align: center;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        th, td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: rgba(0, 255, 255, 0.3);
+            text-transform: uppercase;
+        }
+        td {
+            cursor: pointer;
+        }
+        .edit-input {
+            width: 80%;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        button {
+            background: #00ffcc;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #00aa99;
+        }
+        .delete-button {
+            background: #ff4444;
+        }
+        .delete-button:hover {
+            background: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h2>DATA MAHASISWA</h2>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>NIM</th>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Prodi</th>
+                <th>Alamat</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="addRow()">Add</button>
+    
+    <script>
+        function saveData() {
+            let tableData = [];
+            document.querySelectorAll('#data-table tbody tr').forEach(row => {
+                let rowData = {
+                    nim: row.cells[1].innerText,
+                    nama: row.cells[2].innerText,
+                    kelas: row.cells[3].innerText,
+                    prodi: row.cells[4].innerText,
+                    alamat: row.cells[5].innerText
+                };
+                tableData.push(rowData);
+            });
+            document.cookie = "tableData=" + JSON.stringify(tableData) + ";path=/";
+        }
+
+        function loadData() {
+            let cookieData = document.cookie.split('; ').find(row => row.startsWith('tableData='));
+            if (!cookieData) return;
+            let tableData = JSON.parse(cookieData.split('=')[1]);
+            let tbody = document.querySelector('#data-table tbody');
+            tbody.innerHTML = '';
+            tableData.forEach((data, index) => {
+                let row = tbody.insertRow();
+                row.innerHTML = `<td>${index + 1}</td>
+                                 <td ondblclick="editCell(this, 'nim')">${data.nim}</td>
+                                 <td ondblclick="editCell(this, 'nama')">${data.nama}</td>
+                                 <td ondblclick="editCell(this)">${data.kelas}</td>
+                                 <td ondblclick="editCell(this)">${data.prodi}</td>
+                                 <td ondblclick="editCell(this)">${data.alamat}</td>
+                                 <td><button class="delete-button" onclick="deleteRow(this)">Delete</button></td>`;
+            });
+        }
+        
+        function editCell(cell, type = '') {
+            let oldValue = cell.innerText;
+            let input = document.createElement('input');
+            input.className = 'edit-input';
+            input.value = oldValue;
+            if (type === 'nim') input.pattern = "\\d{9}";
+            if (type === 'nama') input.pattern = "[A-Za-z ]+";
+            
+            let okButton = document.createElement('button');
+            okButton.innerText = 'OK';
+            okButton.onclick = function() {
+                if (input.checkValidity()) {
+                    cell.innerText = input.value;
+                    saveData();
+                } else {
+                    alert('Format salah!');
+                }
+            };
+            
+            let cancelButton = document.createElement('button');
+            cancelButton.innerText = 'Cancel';
+            cancelButton.onclick = function() {
+                cell.innerText = oldValue;
+            };
+            
+            cell.innerText = '';
+            cell.appendChild(input);
+            cell.appendChild(okButton);
+            cell.appendChild(cancelButton);
+            input.focus();
+        }
+        
+        function deleteRow(button) {
+            let row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            saveData();
+        }
+        
+        function addRow() {
+            let table = document.getElementById('data-table').getElementsByTagName('tbody')[0];
+            let rowCount = table.rows.length + 1;
+            let row = table.insertRow();
+            row.innerHTML = `<td>${rowCount}</td>
+                             <td ondblclick="editCell(this, 'nim')">000000000</td>
+                             <td ondblclick="editCell(this, 'nama')">Nama</td>
+                             <td ondblclick="editCell(this)">Kelas</td>
+                             <td ondblclick="editCell(this)">Prodi</td>
+                             <td ondblclick="editCell(this)">Alamat</td>
+                             <td><button class="delete-button" onclick="deleteRow(this)">Delete</button></td>`;
+            saveData();
+        }
+        
+        window.onload = loadData;
+    </script>
+</body>
+</html>
